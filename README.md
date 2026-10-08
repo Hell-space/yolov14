@@ -1,7 +1,8 @@
 <h1 align="center">🚀 YOLOv14：Unified Cross-Domain Real‑Time Object Detection with Adaptive Multi‑View Representation</h1>
 <p align="center">
   <a href="https://arxiv.org/abs/2608.04720"><img src="https://img.shields.io/badge/arXiv-2608.04720-b31b1b.svg?style=flat-square" alt="arXiv"></a>
-  <a href="https://github.com/zhangcbb/yolov14"><img src="https://img.shields.io/badge/GitHub-zhangcbb/yolov14-181717?style=flat-square&logo=github" alt="GitHub"></a>
+  <a href="https://github.com/Hell-space/yolov14"><img src="https://img.shields.io/badge/GitHub-Hell--space/yolov14-181717?style=flat-square&logo=github" alt="GitHub"></a>
+</p>
 <p align="center">
   <a href="https://cheinralational.github.io/JianLu.io/"><img src="https://img.shields.io/badge/First_Author-Jian_Lu-blue?style=flat-square" alt="First Author"></a>
   <a href="https://baike.baidu.com/item/%E5%BC%A0%E6%99%A8%E6%96%8C/65145873"><img src="https://img.shields.io/badge/Corresponding_Author-Chenbin_Zhang-green?style=flat-square" alt="Corresponding Author"></a>
@@ -21,6 +22,7 @@
 - [Core Components](#-core-components)
 - [Model Variants](#-model-variants)
 - [Quick Start](#-quick-start)
+- [Installation & Runtime Checks](#-installation--runtime-checks)
 - [Citation](#-citation)
 - [License](#-license)
 
@@ -57,21 +59,21 @@ Conventional detectors excel under ideal pinhole‑camera conditions, but degrad
 
 ## 🗺️ Project Roadmap & Status
 
-> **Last updated:** August 2026
+> **Installation/demo status updated:** October 2026. The benchmark figures above have not been reproduced by the installation checks below.
 
 | Status | Task | Description |
 |--------|------|-------------|
 | ✅ **DONE** | **arXiv technical report** | Full paper (2608.04720) released with mathematical derivations, ablation studies, and benchmark comparisons. |
-| ✅ **DONE** | **Codebase (architecture & modules)** | Complete training/inference pipeline open‑sourced, including `DeformableAAttn`, `DomainAdaptiveLayer`, `SphereAAttn`, `ViewEmbedding`, `DynamicScaleRouter`, and all YAML configs. |
-| ✅ **DONE** | **Local web demo** | `app.py` (Gradio) is ready for immediate testing on your own images. |
-| ✅ **DONE** | **Reproduction scripts** | Training commands and inference examples are fully documented and tested. |
-| 🔄 **IN PROGRESS** | **Pre‑trained weights (all variants)** | Official checkpoints for `adaptive`, `game2real`, `deformable`, `multiview`, and `panorama` are being open‑sourced. *ETA: within weeks.* |
-| 🔄 **IN PROGRESS** | **Benchmark datasets** | Game character detection set, fisheye evaluation set, drone aerial set, and 360° panorama set are being prepared for public release under permissive licenses. *ETA: within weeks.* |
+| ✅ **CHECKED** | **Architecture & module execution** | Six YAML configs can be constructed and run on synthetic CPU inputs. Module availability does not imply every module is wired into every variant or training objective. |
+| ✅ **RESTORED** | **Local image web demo** | [app.py](app.py) provides random-weight architecture previews and inference with a local `.pt` checkpoint. No automatic scene switching or video workflow is claimed. |
+| ✅ **ADDED** | **Installation/runtime checks** | [scripts/check_install.py](scripts/check_install.py), module tests, demo regressions, and a CPU CI workflow. These do not reproduce training or benchmark accuracy. |
+| ⚠️ **EXTERNAL INPUT REQUIRED** | **Pre-trained weights** | This checkout does not include YOLOv14 checkpoints. Supply a compatible trained checkpoint or train your own. |
+| ⚠️ **EXTERNAL INPUT REQUIRED** | **Benchmark datasets** | Full training/evaluation requires separately obtained datasets and their labels. |
 | ⏳ **TODO** | **ONNX / TensorRT export** | Production‑ready deployment scripts with INT8 calibration and end‑to‑end latency optimisation. |
 | ⏳ **TODO** | **Colab tutorials** | Step‑by‑step notebooks for fine‑tuning on custom data and running inference on videos. |
 | ⏳ **TODO** | **Hugging Face demo** | Online interactive demo integrated with 🤗 Spaces. |
 
-> **Note:** Even without the official weights, you can train YOLOv14 from scratch using the provided configs and your own dataset (e.g., COCO, VisDrone, or custom game screenshots). The codebase is fully functional and ready for research and development.
+> **Note:** YAML files initialize random weights; they do not provide trained detection. The existing training entry point accepts these configs, but full training, domain/view supervision, and accuracy need separate validation with real data.
 
 ---
 
@@ -140,49 +142,140 @@ Three complementary mechanisms bridge the game‑rendering domain to the photogr
 
 ## 📦 Model Variants
 
-| Variant | Key Modules | Target Scenario |
+| Variant | Modules configured in the YAML | Target Scenario |
 |---------|-------------|-----------------|
+| `yolov14.yaml` | CircularConv + ViewEmbedding + DomainAdaptiveLayer + DeformableA2C2f | Unified cross-domain architecture |
 | `yolov14-deformable.yaml` | DeformableA2C2f | Fisheye / wide‑angle |
-| `yolov14-multiview.yaml` | ViewEmbedding + CrossViewLoss | Drone / BEV / mixed perspectives |
-| `yolov14-panorama.yaml` | SphereAAttn + CircularConv | 360° equirectangular |
-| `yolov14-game2real.yaml` | DomainAdaptiveLayer + DomainAdvLoss | Game character detection |
-| `yolov14-adaptive.yaml` | All components combined | Universal – auto scene detection |
+| `yolov14-multiview.yaml` | ViewEmbedding | Drone / BEV / mixed perspectives |
+| `yolov14-panorama.yaml` | CircularConv + A2C2f | 360° equirectangular |
+| `yolov14-game2real.yaml` | DomainAdaptiveLayer | Game character detection |
+| `yolov14-adaptive.yaml` | ViewEmbedding + DomainAdaptiveLayer + DeformableA2C2f | Adaptive architecture |
+
+The table describes the current model graphs. Extra loss classes and `SphereAAttn` exist
+in the source, but their presence alone does not establish that they are selected by
+the training entry point or these YAML files.
 
 ---
 
 ## 🚀 Quick Start
 
+Use a fresh Python 3.11 or 3.12 environment (the package requires Python 3.10+).
+This fork installs the `ultralytics` package name; installing the unrelated PyPI release over it can replace the YOLOv14 code.
+
 ```bash
-conda create -n yolov14 python=3.11
-conda activate yolov14
-pip install -r requirements.txt
-pip install -e .
+git clone https://github.com/Hell-space/yolov14.git
+cd yolov14
+python -m venv .venv
+# Linux/macOS:
+source .venv/bin/activate
+# Windows PowerShell instead:
+# .\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
 ```
 
-**Train Game2Real model:**
-```python
-from ultralytics import YOLO
-model = YOLO("ultralytics/cfg/models/v14/yolov14-game2real.yaml")
-model.train(data="coco.yaml", epochs=300, imgsz=640)
+Install a matched PyTorch/torchvision pair first. For a reproducible **Linux/Windows CPU** environment:
+
+```bash
+python -m pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cpu
 ```
 
-**Train Adaptive model (all innovations):**
-```python
-model = YOLO("ultralytics/cfg/models/v14/yolov14-adaptive.yaml")
-model.train(data="coco.yaml", epochs=300, imgsz=640)
+On macOS, use `python -m pip install torch==2.6.0 torchvision==0.21.0`.
+For CUDA, select the matching pair/index for your driver using the [official PyTorch instructions](https://pytorch.org/get-started/previous-versions/).
+
+```bash
+python -m pip install -e ".[demo,dev]"
+python -m pip check
+python scripts/check_install.py
 ```
 
-**Inference – game characters detected as "person":**
-```python
-results = model.predict("delta_force_screenshot.jpg")
-results[0].show()
-```
+For the framework alone, use `python -m pip install -e .`, or the equivalent
+`python -m pip install -r requirements.txt`. Dependencies have one source of truth in
+[pyproject.toml](pyproject.toml); the `demo` extra adds Gradio and `dev` adds test/build tools.
 
-**Web demo:**
+**Run the local image demo without checkpoints:**
+
 ```bash
 python app.py
 # Visit http://127.0.0.1:7860
 ```
+
+Choose an architecture and upload an image or select a bundled example. This mode uses
+**random weights**, defaults to the `n` scale, and checks execution only. Its boxes are
+not meaningful detections. The restored demo uses the actual v14 YAML files, not YOLOv12
+weights relabeled as YOLOv14. The available architectures preserve the existing configs.
+
+**Run detection with your own compatible trained YOLOv14 checkpoint:**
+
+```bash
+python app.py --weights /path/to/best.pt
+# CUDA instead of CPU: append --device 0
+```
+
+Replace `/path/to/best.pt` with an existing local checkpoint. The app validates the path
+before loading and does not fetch fallback weights. It serves localhost by default;
+`--host` and `--port` can be set explicitly. This demo supports images; use the existing
+Python/CLI predictor separately for videos.
+
+**Train from a YAML configuration:**
+
+Prepare a labeled dataset and replace `path/to/data.yaml` with its dataset configuration.
+Training requires additional time, memory, and data; CPU smoke checks do not validate a full training run.
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("ultralytics/cfg/models/v14/yolov14-game2real.yaml")
+model.train(data="path/to/data.yaml", epochs=300, imgsz=640)
+```
+
+To select the Adaptive architecture instead:
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("ultralytics/cfg/models/v14/yolov14-adaptive.yaml")
+model.train(data="path/to/data.yaml", epochs=300, imgsz=640)
+```
+
+**Inference after training:**
+
+```python
+from ultralytics import YOLO
+
+model = YOLO("runs/detect/train/weights/best.pt")  # replace with your checkpoint
+results = model.predict("ultralytics/assets/bus.jpg", imgsz=320, device="cpu", save=True)
+```
+
+Whether game characters are detected as `person` depends on the checkpoint, class labels,
+and training data. The demo does not create that capability by selecting a scene label.
+
+## 🧪 Installation & Runtime Checks
+
+After installing `.[demo,dev]`, run:
+
+```bash
+python -m pip check
+yolo version
+python scripts/check_install.py
+python tests/test_v14_modules.py
+python -m pytest -q tests/test_install_demo.py
+python app.py --check
+```
+
+The installation check verifies packaged YAML/image resources and finite CPU forward
+outputs plus `predict`/`plot` for all six configs at 256px, without downloads or trained weights.
+The existing module script also checks 640px forwards. Demo regressions cover UI construction,
+RGB/BGR handling, checkpoint save/reload, invalid input paths, and CLI startup/image
+inference through the local HTTP API in both modes. `app.py --check` constructs
+the UI only; it does not start a server or verify inference.
+
+[The CI workflow](.github/workflows/smoke.yml) runs these checks on Python 3.11/3.12 and
+also builds/installs a wheel, then tests its resources from outside the checkout.
+The older general Ultralytics test suite contains integration/download/GPU checks and is
+not included in this offline smoke target. CUDA, real trained-checkpoint accuracy, full
+dataset training, and ONNX/TensorRT exports require separate environment validation.
+
+See [the recorded validation results](docs/install-verification.md) for the tested environment and limits.
 
 ---
 

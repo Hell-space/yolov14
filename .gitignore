@@ -1,1 +1,8 @@
 *__pycache__/
+.venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+runs/
+tests/tmp/
