@@ -1,0 +1,4 @@
+include LICENSE README.md requirements.txt app.py
+recursive-include scripts *.py
+recursive-include tests *.py
+recursive-include docs *.md

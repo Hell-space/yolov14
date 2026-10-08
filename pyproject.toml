@@ -1,0 +1,55 @@
+# This fork ships the ultralytics import package and CLI, including YOLOv14 modules.
+[build-system]
+requires = ["setuptools>=77.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ultralytics"
+dynamic = ["version"]
+description = "YOLOv14 cross-domain object detection, based on Ultralytics YOLO"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "AGPL-3.0"
+license-files = ["LICENSE"]
+dependencies = [
+    "numpy>=1.23.0",
+    "numpy<2.0.0; sys_platform == 'darwin'",
+    "matplotlib>=3.3.0",
+    "opencv-python>=4.6.0",
+    "pillow>=7.1.2",
+    "pyyaml>=5.3.1",
+    "requests>=2.23.0",
+    "scipy>=1.4.1",
+    "torch>=2.0.0",
+    "torch!=2.4.0; sys_platform == 'win32'",
+    "torchvision>=0.15.0",
+    "tqdm>=4.64.0",
+    "psutil",
+    "py-cpuinfo",
+    "pandas>=1.1.4",
+    "seaborn>=0.11.0",
+    "ultralytics-thop>=2.0.0",
+]
+
+[project.optional-dependencies]
+demo = ["gradio>=5.0,<6.0"]
+dev = ["pytest>=7.0", "build>=1.0"]
+
+[project.urls]
+Source = "https://github.com/Hell-space/yolov14"
+"Upstream framework" = "https://github.com/ultralytics/ultralytics"
+
+[project.scripts]
+yolo = "ultralytics.cfg:entrypoint"
+ultralytics = "ultralytics.cfg:entrypoint"
+
+[tool.setuptools]
+packages = {find = {where = ["."], include = ["ultralytics", "ultralytics.*"]}}
+package-data = {ultralytics = ["**/*.yaml", "assets/*.jpg", "data/scripts/*.sh"]}
+
+[tool.setuptools.dynamic]
+version = {attr = "ultralytics.__version__"}
+
+[tool.pytest.ini_options]
+markers = ["slow: skip slow tests unless --slow is set"]
+norecursedirs = [".git", ".venv", "dist", "build"]

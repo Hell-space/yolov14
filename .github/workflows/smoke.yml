@@ -1,0 +1,49 @@
+name: Installation and YOLOv14 smoke checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cpu:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.12"]
+    env:
+      YOLO_OFFLINE: "True"
+      YOLO_AUTOINSTALL: "False"
+      OMP_NUM_THREADS: "1"
+      GRADIO_ANALYTICS_ENABLED: "False"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Install CPU PyTorch and this checkout
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -e ".[demo,dev]"
+          python -m pip check
+      - name: Check CLI, models, modules, and demo
+        run: |
+          yolo version
+          python scripts/check_install.py
+          python tests/test_v14_modules.py
+          python -m pytest -q tests/test_install_demo.py
+          python app.py --check
+      - name: Check distribution archives and installed wheel resources
+        run: |
+          python -m build
+          python scripts/check_package.py
+          python -m pip uninstall -y ultralytics
+          python -m pip install --no-deps dist/*.whl
+          cd "${RUNNER_TEMP}"
+          python "${GITHUB_WORKSPACE}/scripts/check_install.py"
+          yolo version

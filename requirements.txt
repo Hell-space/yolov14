@@ -1,0 +1,2 @@
+# Install this checkout; dependency versions are maintained in pyproject.toml.
+-e .
