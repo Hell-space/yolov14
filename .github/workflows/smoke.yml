@@ -38,9 +38,10 @@ jobs:
           python tests/test_v14_modules.py
           python -m pytest -q tests/test_install_demo.py
           python app.py --check
-      - name: Check wheel resources outside the checkout
+      - name: Check distribution archives and installed wheel resources
         run: |
           python -m build
+          python scripts/check_package.py
           python -m pip uninstall -y ultralytics
           python -m pip install --no-deps dist/*.whl
           cd "${RUNNER_TEMP}"

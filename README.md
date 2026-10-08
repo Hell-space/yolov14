@@ -179,7 +179,11 @@ Install a matched PyTorch/torchvision pair first. For a reproducible **Linux/Win
 python -m pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cpu
 ```
 
-On macOS, use `python -m pip install torch==2.6.0 torchvision==0.21.0`.
+On Apple Silicon macOS (with native arm64 Python), use
+`python -m pip install torch==2.6.0 torchvision==0.21.0`.
+This pinned pair has no official Intel macOS (x86_64) wheels. Intel Macs are not
+covered by this installation recipe; an older dependency combination has not been
+validated for this fork. Native macOS runtime checks remain unverified.
 For CUDA, select the matching pair/index for your driver using the [official PyTorch instructions](https://pytorch.org/get-started/previous-versions/).
 
 ```bash

@@ -29,6 +29,8 @@ def main(argv=None):
     print(f"ultralytics {importlib.metadata.version('ultralytics')}: {ultralytics.__file__}")
     assert (ROOT / "cfg/default.yaml").is_file(), "Installed default configuration is missing"
     assert (ASSETS / "bus.jpg").is_file(), "Installed demo image is missing"
+    for name in ("download_weights.sh", "get_coco.sh", "get_coco128.sh", "get_imagenet.sh"):
+        assert (ROOT / "data/scripts" / name).is_file(), f"Installed data script is missing: {name}"
     configs = sorted((ROOT / "cfg/models/v14").glob("*.yaml"))
     assert len(configs) == 6, f"Expected six YOLOv14 configurations, found {len(configs)}"
     failures = []
